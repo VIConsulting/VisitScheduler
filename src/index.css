@@ -482,6 +482,16 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .status-badge--active { background: #e8f5e9; color: #2e7d32; }
 .status-badge--inactive { background: #ffebee; color: var(--danger); }
 
+.edit-row td { background: #f0f4ff; padding: 10px 12px; }
+.edit-row-form {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.edit-row-form .field { min-width: 120px; flex: 1; }
+.edit-row-form .field label { font-size: 11px; }
+
 .create-user-form { display: flex; flex-direction: column; gap: 12px; }
 .form-row {
   display: flex;

@@ -67,3 +67,12 @@ export function setUserActive(userId, active) {
   const users = getUsers();
   saveUsers(users.map(u => u.id === userId ? { ...u, active } : u));
 }
+
+// Returns { ok, reason } — 'exists' if new username clashes with another user
+export function updateUser(userId, { username, role }) {
+  const users = getUsers();
+  const clash = users.find(u => u.id !== userId && u.username.toLowerCase() === username.toLowerCase());
+  if (clash) return { ok: false, reason: 'exists' };
+  saveUsers(users.map(u => u.id === userId ? { ...u, username: username.trim(), role } : u));
+  return { ok: true };
+}
