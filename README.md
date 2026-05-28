@@ -1,4 +1,4 @@
-# NxtGen Staff — Care Home Visit Scheduler
+# Care Home Visit Scheduler
 
 A mobile-first web app for managing care home visiting schedules.
 
