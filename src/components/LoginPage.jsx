@@ -28,8 +28,8 @@ export default function LoginPage({ onLogin }) {
       <div className="login-card">
         <div className="login-logo">
           <span className="login-icon">🏠</span>
-          <h1>NxtGen Staff</h1>
-          <p>Care Home Visit Scheduler</p>
+          <h1>Visit Scheduler</h1>
+          <p>Care Home Visiting</p>
         </div>
         <form onSubmit={handleSubmit} className="login-form">
           <div className="field">

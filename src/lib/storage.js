@@ -1,8 +1,8 @@
 const KEYS = {
-  USERS: 'nxtgen_users',
-  SESSION: 'nxtgen_session',
-  SCHEDULE: 'nxtgen_schedule',
-  REMEMBER: 'nxtgen_remember',
+  USERS: 'visitsch_users',
+  SESSION: 'visitsch_session',
+  SCHEDULE: 'visitsch_schedule',
+  REMEMBER: 'visitsch_remember',
 };
 
 export function getUsers() {

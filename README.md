@@ -1,4 +1,4 @@
-# Care Home Visit Scheduler
+# Visit Scheduler — Care Home
 
 A mobile-first web app for managing care home visiting schedules.
 

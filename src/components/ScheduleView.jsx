@@ -35,7 +35,7 @@ export default function ScheduleView({ session, onLogout, onAdmin }) {
       <header className="app-header">
         <div className="header-left">
           <span className="header-logo">🏠</span>
-          <span className="header-title">NxtGen Staff</span>
+          <span className="header-title">Visit Scheduler</span>
         </div>
         <div className="header-right">
           <span className="header-user">👤 {session.username}</span>
