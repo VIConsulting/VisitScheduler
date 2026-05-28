@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { seedAdminIfNeeded, logout, currentSession } from './lib/auth.js';
+import { currentSession, logout } from './lib/auth.js';
 import LoginPage from './components/LoginPage.jsx';
 import ScheduleView from './components/ScheduleView.jsx';
 import AdminPortal from './components/AdminPortal.jsx';
@@ -10,19 +10,18 @@ export default function App() {
   const [showAdmin, setShowAdmin] = useState(false);
 
   useEffect(() => {
-    seedAdminIfNeeded().then(() => {
-      const s = currentSession();
+    currentSession().then(s => {
       setSession(s);
       setReady(true);
     });
   }, []);
 
-  function handleLogin(user) {
-    setSession({ username: user.username, role: user.role });
+  async function handleLogin(user) {
+    setSession(user);
   }
 
-  function handleLogout() {
-    logout();
+  async function handleLogout() {
+    await logout();
     setSession(null);
     setShowAdmin(false);
   }
@@ -35,17 +34,11 @@ export default function App() {
     );
   }
 
-  if (!session) {
-    return <LoginPage onLogin={handleLogin} />;
-  }
+  if (!session) return <LoginPage onLogin={handleLogin} />;
 
   return (
     <>
-      <ScheduleView
-        session={session}
-        onLogout={handleLogout}
-        onAdmin={() => setShowAdmin(true)}
-      />
+      <ScheduleView session={session} onLogout={handleLogout} onAdmin={() => setShowAdmin(true)} />
       {showAdmin && session.role === 'admin' && (
         <AdminPortal session={session} onClose={() => setShowAdmin(false)} />
       )}

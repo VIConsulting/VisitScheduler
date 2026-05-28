@@ -1,33 +1,59 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import ScheduleGrid from './ScheduleGrid.jsx';
 import Legend from './Legend.jsx';
+import { apiGetSchedule, apiUpdateSlot } from '../lib/api.js';
+import { slotKey } from '../lib/schedule.js';
 
-const MONTH_NAMES = [
-  'January','February','March','April','May','June',
-  'July','August','September','October','November','December',
-];
+const MONTH_NAMES = ['January','February','March','April','May','June',
+  'July','August','September','October','November','December'];
 
 export default function ScheduleView({ session, onLogout, onAdmin }) {
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth());
-  const [tick, setTick] = useState(0); // force re-render on data change
+  const [scheduleData, setScheduleData] = useState({});
+  const [loadingSchedule, setLoadingSchedule] = useState(true);
 
   const canEdit = session.role === 'admin' || session.role === 'editor';
+
+  const fetchSchedule = useCallback(async () => {
+    setLoadingSchedule(true);
+    const data = await apiGetSchedule();
+    setScheduleData(data || {});
+    setLoadingSchedule(false);
+  }, []);
+
+  useEffect(() => { fetchSchedule(); }, [fetchSchedule]);
 
   function prevMonth() {
     if (month === 0) { setYear(y => y - 1); setMonth(11); }
     else setMonth(m => m - 1);
   }
-
   function nextMonth() {
     if (month === 11) { setYear(y => y + 1); setMonth(0); }
     else setMonth(m => m + 1);
   }
+  function goToday() { setYear(now.getFullYear()); setMonth(now.getMonth()); }
 
-  function goToday() {
-    setYear(now.getFullYear());
-    setMonth(now.getMonth());
+  async function handleToggleVisitor(date, period, name) {
+    const key = slotKey(date, period);
+    const slot = scheduleData[key] || { visitors: [], note: '' };
+    const newSlot = {
+      ...slot,
+      visitors: slot.visitors.includes(name)
+        ? slot.visitors.filter(v => v !== name)
+        : [...slot.visitors, name],
+    };
+    setScheduleData(prev => ({ ...prev, [key]: newSlot }));
+    await apiUpdateSlot(date, period, newSlot);
+  }
+
+  async function handleSetNote(date, period, note) {
+    const key = slotKey(date, period);
+    const slot = scheduleData[key] || { visitors: [], note: '' };
+    const newSlot = { ...slot, note };
+    setScheduleData(prev => ({ ...prev, [key]: newSlot }));
+    await apiUpdateSlot(date, period, newSlot);
   }
 
   return (
@@ -58,13 +84,18 @@ export default function ScheduleView({ session, onLogout, onAdmin }) {
       <Legend />
 
       <div className="schedule-wrapper">
-        <ScheduleGrid
-          key={`${year}-${month}-${tick}`}
-          year={year}
-          month={month}
-          canEdit={canEdit}
-          onDataChange={() => setTick(t => t + 1)}
-        />
+        {loadingSchedule ? (
+          <div className="schedule-loading"><div className="loading-spinner" /></div>
+        ) : (
+          <ScheduleGrid
+            year={year}
+            month={month}
+            scheduleData={scheduleData}
+            canEdit={canEdit}
+            onToggleVisitor={handleToggleVisitor}
+            onSetNote={handleSetNote}
+          />
+        )}
       </div>
     </div>
   );

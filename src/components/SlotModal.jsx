@@ -1,9 +1,8 @@
 import { useState } from 'react';
-import { KNOWN_VISITORS, getSlot } from '../lib/schedule.js';
+import { KNOWN_VISITORS } from '../lib/schedule.js';
 import { getChipStyle } from '../lib/colours.js';
 
-export default function SlotModal({ date, period, onClose, onToggleVisitor, onSetNote, canEdit }) {
-  const slot = getSlot(date, period);
+export default function SlotModal({ date, period, slot, canEdit, onClose, onToggleVisitor, onSetNote }) {
   const [note, setNote] = useState(slot.note || '');
   const [noteSaved, setNoteSaved] = useState(false);
 
@@ -11,12 +10,11 @@ export default function SlotModal({ date, period, onClose, onToggleVisitor, onSe
     weekday: 'long', day: 'numeric', month: 'long',
   });
 
-  function handleNoteBlur() {
-    if (canEdit) {
-      onSetNote(date, period, note);
-      setNoteSaved(true);
-      setTimeout(() => setNoteSaved(false), 1500);
-    }
+  async function handleNoteBlur() {
+    if (!canEdit) return;
+    await onSetNote(date, period, note);
+    setNoteSaved(true);
+    setTimeout(() => setNoteSaved(false), 1500);
   }
 
   return (
@@ -35,12 +33,11 @@ export default function SlotModal({ date, period, onClose, onToggleVisitor, onSe
           <div className="visitor-toggles">
             {KNOWN_VISITORS.map(name => {
               const active = slot.visitors.includes(name);
-              const style = getChipStyle(name);
               return (
                 <button
                   key={name}
                   className={`visitor-toggle ${active ? 'visitor-toggle--active' : ''}`}
-                  style={active ? style : {}}
+                  style={active ? getChipStyle(name) : {}}
                   onClick={() => canEdit && onToggleVisitor(date, period, name)}
                   disabled={!canEdit}
                 >

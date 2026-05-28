@@ -14,9 +14,9 @@ export default function LoginPage({ onLogin }) {
     setLoading(true);
     const result = await login(username.trim(), password, remember);
     setLoading(false);
-    if (result.ok) {
+    if (result?.ok) {
       onLogin(result.user);
-    } else if (result.reason === 'inactive') {
+    } else if (result?.reason === 'inactive') {
       setError('This account has been deactivated. Please contact the administrator.');
     } else {
       setError('Incorrect username or password.');
@@ -34,36 +34,17 @@ export default function LoginPage({ onLogin }) {
         <form onSubmit={handleSubmit} className="login-form">
           <div className="field">
             <label htmlFor="username">Username</label>
-            <input
-              id="username"
-              type="text"
-              autoComplete="username"
-              value={username}
-              onChange={e => setUsername(e.target.value)}
-              required
-              disabled={loading}
-            />
+            <input id="username" type="text" autoComplete="username" value={username}
+              onChange={e => setUsername(e.target.value)} required disabled={loading} />
           </div>
           <div className="field">
             <label htmlFor="password">Password</label>
-            <input
-              id="password"
-              type="password"
-              autoComplete="current-password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              required
-              disabled={loading}
-            />
+            <input id="password" type="password" autoComplete="current-password" value={password}
+              onChange={e => setPassword(e.target.value)} required disabled={loading} />
           </div>
           <div className="field field--checkbox">
             <label>
-              <input
-                type="checkbox"
-                checked={remember}
-                onChange={e => setRemember(e.target.checked)}
-                disabled={loading}
-              />
+              <input type="checkbox" checked={remember} onChange={e => setRemember(e.target.checked)} disabled={loading} />
               Remember me
             </label>
           </div>

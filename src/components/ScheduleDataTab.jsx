@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { getSchedule, saveSchedule, clearSchedule } from '../lib/storage.js';
+import { apiGetSchedule, apiImportSchedule, apiClearSchedule } from '../lib/api.js';
 
 export default function ScheduleDataTab() {
   const [importError, setImportError] = useState('');
@@ -7,8 +7,8 @@ export default function ScheduleDataTab() {
   const [confirmClear, setConfirmClear] = useState(false);
   const fileRef = useRef();
 
-  function handleExport() {
-    const data = getSchedule();
+  async function handleExport() {
+    const data = await apiGetSchedule();
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -24,11 +24,12 @@ export default function ScheduleDataTab() {
     setImportError('');
     setImportSuccess('');
     const reader = new FileReader();
-    reader.onload = ev => {
+    reader.onload = async ev => {
       try {
         const data = JSON.parse(ev.target.result);
-        if (typeof data !== 'object' || Array.isArray(data)) throw new Error('Invalid format');
-        saveSchedule(data);
+        if (typeof data !== 'object' || Array.isArray(data)) throw new Error();
+        const result = await apiImportSchedule(data);
+        if (!result?.ok) throw new Error();
         setImportSuccess(`Imported ${Object.keys(data).length} slot entries.`);
       } catch {
         setImportError('Invalid JSON file. Import cancelled.');
@@ -38,9 +39,9 @@ export default function ScheduleDataTab() {
     e.target.value = '';
   }
 
-  function handleClear() {
+  async function handleClear() {
     if (!confirmClear) { setConfirmClear(true); return; }
-    clearSchedule();
+    await apiClearSchedule();
     setConfirmClear(false);
     setImportSuccess('Schedule cleared.');
   }

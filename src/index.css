@@ -208,6 +208,13 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 
 /* ===== Schedule Grid ===== */
+.schedule-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 60px;
+}
+
 .schedule-wrapper {
   flex: 1;
   overflow-x: auto;
