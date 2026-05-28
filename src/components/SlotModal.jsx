@@ -1,0 +1,72 @@
+import { useState } from 'react';
+import { KNOWN_VISITORS, getSlot } from '../lib/schedule.js';
+import { getChipStyle } from '../lib/colours.js';
+
+export default function SlotModal({ date, period, onClose, onToggleVisitor, onSetNote, canEdit }) {
+  const slot = getSlot(date, period);
+  const [note, setNote] = useState(slot.note || '');
+  const [noteSaved, setNoteSaved] = useState(false);
+
+  const displayDate = new Date(date + 'T00:00:00').toLocaleDateString('en-GB', {
+    weekday: 'long', day: 'numeric', month: 'long',
+  });
+
+  function handleNoteBlur() {
+    if (canEdit) {
+      onSetNote(date, period, note);
+      setNoteSaved(true);
+      setTimeout(() => setNoteSaved(false), 1500);
+    }
+  }
+
+  return (
+    <div className="modal-backdrop" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="modal">
+        <div className="modal-header">
+          <div>
+            <div className="modal-title">{period}</div>
+            <div className="modal-subtitle">{displayDate}</div>
+          </div>
+          <button className="modal-close" onClick={onClose}>✕</button>
+        </div>
+
+        <div className="modal-body">
+          <p className="modal-section-label">Visitors</p>
+          <div className="visitor-toggles">
+            {KNOWN_VISITORS.map(name => {
+              const active = slot.visitors.includes(name);
+              const style = getChipStyle(name);
+              return (
+                <button
+                  key={name}
+                  className={`visitor-toggle ${active ? 'visitor-toggle--active' : ''}`}
+                  style={active ? style : {}}
+                  onClick={() => canEdit && onToggleVisitor(date, period, name)}
+                  disabled={!canEdit}
+                >
+                  {active ? '✓ ' : '+ '}{name}
+                </button>
+              );
+            })}
+          </div>
+
+          <p className="modal-section-label">Note</p>
+          <textarea
+            className="slot-note"
+            value={note}
+            onChange={e => setNote(e.target.value)}
+            onBlur={handleNoteBlur}
+            placeholder={canEdit ? 'Add a note…' : 'No note'}
+            readOnly={!canEdit}
+            rows={3}
+          />
+          {noteSaved && <span className="save-indicator">Saved</span>}
+        </div>
+
+        <div className="modal-footer">
+          <button className="btn btn--secondary" onClick={onClose}>Close</button>
+        </div>
+      </div>
+    </div>
+  );
+}
