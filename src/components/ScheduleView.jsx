@@ -1,30 +1,32 @@
 import { useState, useEffect, useCallback } from 'react';
 import ScheduleGrid from './ScheduleGrid.jsx';
-import { apiGetSchedule, apiUpdateSlot } from '../lib/api.js';
+import UnavailableModal from './UnavailableModal.jsx';
+import { apiGetSchedule, apiUpdateSlot, apiGetUnavailability, apiAddUnavailability, apiDeleteUnavailability } from '../lib/api.js';
 import { slotKey } from '../lib/schedule.js';
 
 const MONTH_NAMES = ['January','February','March','April','May','June',
   'July','August','September','October','November','December'];
-
-function emptySlot() { return { visitors: [], unavailable: [], note: '' }; }
 
 export default function ScheduleView({ session, onLogout, onAdmin }) {
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth());
   const [scheduleData, setScheduleData] = useState({});
+  const [unavailability, setUnavailability] = useState({});
   const [loadingSchedule, setLoadingSchedule] = useState(true);
+  const [showUnavailModal, setShowUnavailModal] = useState(false);
 
   const canEdit = session.role === 'admin' || session.role === 'editor';
 
-  const fetchSchedule = useCallback(async () => {
+  const fetchAll = useCallback(async () => {
     setLoadingSchedule(true);
-    const data = await apiGetSchedule();
-    setScheduleData(data || {});
+    const [sched, unavail] = await Promise.all([apiGetSchedule(), apiGetUnavailability()]);
+    setScheduleData(sched || {});
+    setUnavailability(unavail || {});
     setLoadingSchedule(false);
   }, []);
 
-  useEffect(() => { fetchSchedule(); }, [fetchSchedule]);
+  useEffect(() => { fetchAll(); }, [fetchAll]);
 
   function prevMonth() {
     if (month === 0) { setYear(y => y - 1); setMonth(11); }
@@ -38,29 +40,12 @@ export default function ScheduleView({ session, onLogout, onAdmin }) {
 
   async function handleToggleVisitor(date, period, name) {
     const key = slotKey(date, period);
-    const slot = scheduleData[key] || emptySlot();
-    const attending = slot.visitors.includes(name);
+    const slot = scheduleData[key] || { visitors: [], note: '' };
     const newSlot = {
       ...slot,
-      visitors: attending ? slot.visitors.filter(v => v !== name) : [...slot.visitors, name],
-      // remove from unavailable if being added to attending
-      unavailable: (slot.unavailable || []).filter(v => v !== name),
-    };
-    setScheduleData(prev => ({ ...prev, [key]: newSlot }));
-    await apiUpdateSlot(date, period, newSlot);
-  }
-
-  async function handleToggleUnavailable(date, period, name) {
-    const key = slotKey(date, period);
-    const slot = scheduleData[key] || emptySlot();
-    const isUnavailable = (slot.unavailable || []).includes(name);
-    const newSlot = {
-      ...slot,
-      unavailable: isUnavailable
-        ? slot.unavailable.filter(v => v !== name)
-        : [...(slot.unavailable || []), name],
-      // remove from attending if being marked unavailable
-      visitors: slot.visitors.filter(v => v !== name),
+      visitors: slot.visitors.includes(name)
+        ? slot.visitors.filter(v => v !== name)
+        : [...slot.visitors, name],
     };
     setScheduleData(prev => ({ ...prev, [key]: newSlot }));
     await apiUpdateSlot(date, period, newSlot);
@@ -68,10 +53,26 @@ export default function ScheduleView({ session, onLogout, onAdmin }) {
 
   async function handleSetNote(date, period, note) {
     const key = slotKey(date, period);
-    const slot = scheduleData[key] || emptySlot();
+    const slot = scheduleData[key] || { visitors: [], note: '' };
     const newSlot = { ...slot, note };
     setScheduleData(prev => ({ ...prev, [key]: newSlot }));
     await apiUpdateSlot(date, period, newSlot);
+  }
+
+  async function handleAddUnavailability(entry) {
+    const result = await apiAddUnavailability(entry);
+    if (result?.ok) {
+      setUnavailability(prev => ({ ...prev, [result.entry.id]: result.entry }));
+    }
+  }
+
+  async function handleDeleteUnavailability(id) {
+    await apiDeleteUnavailability(id);
+    setUnavailability(prev => {
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
   }
 
   return (
@@ -96,7 +97,14 @@ export default function ScheduleView({ session, onLogout, onAdmin }) {
           <h2 className="month-label">{MONTH_NAMES[month]} {year}</h2>
           <button className="btn btn--icon" onClick={nextMonth}>›</button>
         </div>
-        <button className="btn btn--secondary btn--sm" onClick={goToday}>Today</button>
+        <div className="controls-right">
+          {canEdit && (
+            <button className="btn btn--secondary btn--sm" onClick={() => setShowUnavailModal(true)}>
+              + Unavailable
+            </button>
+          )}
+          <button className="btn btn--ghost btn--sm" onClick={goToday}>Today</button>
+        </div>
       </div>
 
       <div className="schedule-wrapper">
@@ -107,13 +115,21 @@ export default function ScheduleView({ session, onLogout, onAdmin }) {
             year={year}
             month={month}
             scheduleData={scheduleData}
+            unavailability={unavailability}
             canEdit={canEdit}
             onToggleVisitor={handleToggleVisitor}
-            onToggleUnavailable={handleToggleUnavailable}
             onSetNote={handleSetNote}
+            onDeleteUnavailability={handleDeleteUnavailability}
           />
         )}
       </div>
+
+      {showUnavailModal && (
+        <UnavailableModal
+          onClose={() => setShowUnavailModal(false)}
+          onSave={handleAddUnavailability}
+        />
+      )}
     </div>
   );
 }

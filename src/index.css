@@ -183,9 +183,43 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
 }
+.controls-right { display: flex; align-items: center; gap: 8px; }
 
 .month-nav { display: flex; align-items: center; gap: 12px; }
 .month-label { font-size: 18px; font-weight: 600; color: var(--text); white-space: nowrap; }
+
+/* ===== Unavailability banners ===== */
+.banner-row {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  padding: 3px 2px 0;
+  min-width: 700px;
+}
+
+.banner {
+  height: 20px;
+  border-radius: 3px;
+  padding: 0 5px;
+  font-size: 10px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  overflow: hidden;
+  cursor: default;
+  white-space: nowrap;
+}
+.banner[title*="click"] { cursor: pointer; }
+.banner:hover .banner-remove { opacity: 1; }
+.banner-text { overflow: hidden; text-overflow: ellipsis; flex: 1; }
+.banner-remove { opacity: 0; font-size: 9px; flex-shrink: 0; transition: opacity 0.15s; }
+
+.grid-week-wrapper { border-bottom: 1px solid var(--border); }
+
+.unavail-dates { display: flex; gap: 12px; }
+.unavail-dates .field { flex: 1; }
 
 /* ===== Schedule Grid ===== */
 .schedule-loading {
@@ -229,7 +263,6 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .grid-week {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  border-bottom: 1px solid var(--border);
 }
 
 .grid-day {

@@ -37,6 +37,15 @@ export async function apiUpdateUser(id, data) {
   return req(`/api/users/${id}`, { method: 'PUT', body: JSON.stringify(data) });
 }
 
+// Unavailability
+export async function apiGetUnavailability() { return req('/api/unavailability'); }
+export async function apiAddUnavailability(entry) {
+  return req('/api/unavailability', { method: 'POST', body: JSON.stringify(entry) });
+}
+export async function apiDeleteUnavailability(id) {
+  return req(`/api/unavailability/${id}`, { method: 'DELETE' });
+}
+
 // Schedule
 export async function apiGetSchedule() { return req('/api/schedule'); }
 export async function apiUpdateSlot(date, period, slot) {
