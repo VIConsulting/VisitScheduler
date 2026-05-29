@@ -187,26 +187,6 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .month-nav { display: flex; align-items: center; gap: 12px; }
 .month-label { font-size: 18px; font-weight: 600; color: var(--text); white-space: nowrap; }
 
-/* ===== Legend ===== */
-.legend {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  background: #fafafa;
-  border-bottom: 1px solid var(--border);
-  font-size: 12px;
-  flex-shrink: 0;
-}
-.legend-title { font-weight: 600; color: var(--text-muted); flex-shrink: 0; }
-.legend-item {
-  padding: 2px 8px;
-  border-radius: 12px;
-  font-size: 11px;
-  font-weight: 500;
-}
-
 /* ===== Schedule Grid ===== */
 .schedule-loading {
   display: flex;
@@ -313,6 +293,11 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   line-height: 1.4;
   white-space: nowrap;
 }
+.chip--unavailable {
+  background: #ffebee;
+  color: #c62828;
+  text-decoration: line-through;
+}
 
 .slot-note-preview {
   font-size: 10px;
@@ -400,6 +385,11 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 .visitor-toggle:disabled { opacity: 0.5; cursor: not-allowed; }
 .visitor-toggle--active { border-color: transparent; }
+.visitor-toggle--unavailable {
+  background: #ffebee;
+  color: #c62828;
+  border-color: #ffcdd2;
+}
 
 .slot-note {
   width: 100%;

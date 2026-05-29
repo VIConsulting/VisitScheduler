@@ -2,9 +2,12 @@ import { useState } from 'react';
 import { KNOWN_VISITORS } from '../lib/schedule.js';
 import { getChipStyle } from '../lib/colours.js';
 
-export default function SlotModal({ date, period, slot, canEdit, onClose, onToggleVisitor, onSetNote }) {
+export default function SlotModal({ date, period, slot, canEdit, onClose, onToggleVisitor, onToggleUnavailable, onSetNote }) {
   const [note, setNote] = useState(slot.note || '');
   const [noteSaved, setNoteSaved] = useState(false);
+
+  const visitors = slot.visitors || [];
+  const unavailable = slot.unavailable || [];
 
   const displayDate = new Date(date + 'T00:00:00').toLocaleDateString('en-GB', {
     weekday: 'long', day: 'numeric', month: 'long',
@@ -29,10 +32,10 @@ export default function SlotModal({ date, period, slot, canEdit, onClose, onTogg
         </div>
 
         <div className="modal-body">
-          <p className="modal-section-label">Visitors</p>
+          <p className="modal-section-label">Attending</p>
           <div className="visitor-toggles">
             {KNOWN_VISITORS.map(name => {
-              const active = slot.visitors.includes(name);
+              const active = visitors.includes(name);
               return (
                 <button
                   key={name}
@@ -42,6 +45,23 @@ export default function SlotModal({ date, period, slot, canEdit, onClose, onTogg
                   disabled={!canEdit}
                 >
                   {active ? '✓ ' : '+ '}{name}
+                </button>
+              );
+            })}
+          </div>
+
+          <p className="modal-section-label">Unavailable</p>
+          <div className="visitor-toggles">
+            {KNOWN_VISITORS.map(name => {
+              const active = unavailable.includes(name);
+              return (
+                <button
+                  key={name}
+                  className={`visitor-toggle ${active ? 'visitor-toggle--unavailable' : ''}`}
+                  onClick={() => canEdit && onToggleUnavailable(date, period, name)}
+                  disabled={!canEdit}
+                >
+                  {active ? '✗ ' : '– '}{name}
                 </button>
               );
             })}

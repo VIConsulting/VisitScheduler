@@ -3,23 +3,26 @@ import { weeksInMonth, DAY_LABELS, PERIODS, slotKey } from '../lib/schedule.js';
 import { getChipStyle } from '../lib/colours.js';
 import SlotModal from './SlotModal.jsx';
 
-function VisitorChip({ name }) {
-  return <span className="chip" style={getChipStyle(name)}>{name}</span>;
-}
-
 function SlotCell({ slot, period, canEdit, onClick }) {
+  const visitors = slot?.visitors || [];
+  const unavailable = slot?.unavailable || [];
   return (
     <div className={`slot-cell ${canEdit ? 'slot-cell--editable' : ''}`} onClick={onClick}>
       <span className="slot-period">{period}</span>
       <div className="slot-chips">
-        {(slot?.visitors || []).map(v => <VisitorChip key={v} name={v} />)}
+        {visitors.map(v => (
+          <span key={v} className="chip" style={getChipStyle(v)}>{v}</span>
+        ))}
+        {unavailable.map(v => (
+          <span key={v} className="chip chip--unavailable">✗ {v}</span>
+        ))}
       </div>
       {slot?.note && <div className="slot-note-preview" title={slot.note}>📝</div>}
     </div>
   );
 }
 
-export default function ScheduleGrid({ year, month, scheduleData, canEdit, onToggleVisitor, onSetNote }) {
+export default function ScheduleGrid({ year, month, scheduleData, canEdit, onToggleVisitor, onToggleUnavailable, onSetNote }) {
   const [modal, setModal] = useState(null);
   const _t = new Date();
   const today = `${_t.getFullYear()}-${String(_t.getMonth()+1).padStart(2,'0')}-${String(_t.getDate()).padStart(2,'0')}`;
@@ -62,10 +65,11 @@ export default function ScheduleGrid({ year, month, scheduleData, canEdit, onTog
         <SlotModal
           date={modal.date}
           period={modal.period}
-          slot={scheduleData[slotKey(modal.date, modal.period)] || { visitors: [], note: '' }}
+          slot={scheduleData[slotKey(modal.date, modal.period)] || { visitors: [], unavailable: [], note: '' }}
           canEdit={canEdit}
           onClose={() => setModal(null)}
           onToggleVisitor={onToggleVisitor}
+          onToggleUnavailable={onToggleUnavailable}
           onSetNote={onSetNote}
         />
       )}

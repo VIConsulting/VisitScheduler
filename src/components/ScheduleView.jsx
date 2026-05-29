@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import ScheduleGrid from './ScheduleGrid.jsx';
-import Legend from './Legend.jsx';
 import { apiGetSchedule, apiUpdateSlot } from '../lib/api.js';
 import { slotKey } from '../lib/schedule.js';
 
 const MONTH_NAMES = ['January','February','March','April','May','June',
   'July','August','September','October','November','December'];
+
+function emptySlot() { return { visitors: [], unavailable: [], note: '' }; }
 
 export default function ScheduleView({ session, onLogout, onAdmin }) {
   const now = new Date();
@@ -37,12 +38,29 @@ export default function ScheduleView({ session, onLogout, onAdmin }) {
 
   async function handleToggleVisitor(date, period, name) {
     const key = slotKey(date, period);
-    const slot = scheduleData[key] || { visitors: [], note: '' };
+    const slot = scheduleData[key] || emptySlot();
+    const attending = slot.visitors.includes(name);
     const newSlot = {
       ...slot,
-      visitors: slot.visitors.includes(name)
-        ? slot.visitors.filter(v => v !== name)
-        : [...slot.visitors, name],
+      visitors: attending ? slot.visitors.filter(v => v !== name) : [...slot.visitors, name],
+      // remove from unavailable if being added to attending
+      unavailable: (slot.unavailable || []).filter(v => v !== name),
+    };
+    setScheduleData(prev => ({ ...prev, [key]: newSlot }));
+    await apiUpdateSlot(date, period, newSlot);
+  }
+
+  async function handleToggleUnavailable(date, period, name) {
+    const key = slotKey(date, period);
+    const slot = scheduleData[key] || emptySlot();
+    const isUnavailable = (slot.unavailable || []).includes(name);
+    const newSlot = {
+      ...slot,
+      unavailable: isUnavailable
+        ? slot.unavailable.filter(v => v !== name)
+        : [...(slot.unavailable || []), name],
+      // remove from attending if being marked unavailable
+      visitors: slot.visitors.filter(v => v !== name),
     };
     setScheduleData(prev => ({ ...prev, [key]: newSlot }));
     await apiUpdateSlot(date, period, newSlot);
@@ -50,7 +68,7 @@ export default function ScheduleView({ session, onLogout, onAdmin }) {
 
   async function handleSetNote(date, period, note) {
     const key = slotKey(date, period);
-    const slot = scheduleData[key] || { visitors: [], note: '' };
+    const slot = scheduleData[key] || emptySlot();
     const newSlot = { ...slot, note };
     setScheduleData(prev => ({ ...prev, [key]: newSlot }));
     await apiUpdateSlot(date, period, newSlot);
@@ -81,8 +99,6 @@ export default function ScheduleView({ session, onLogout, onAdmin }) {
         <button className="btn btn--secondary btn--sm" onClick={goToday}>Today</button>
       </div>
 
-      <Legend />
-
       <div className="schedule-wrapper">
         {loadingSchedule ? (
           <div className="schedule-loading"><div className="loading-spinner" /></div>
@@ -93,6 +109,7 @@ export default function ScheduleView({ session, onLogout, onAdmin }) {
             scheduleData={scheduleData}
             canEdit={canEdit}
             onToggleVisitor={handleToggleVisitor}
+            onToggleUnavailable={handleToggleUnavailable}
             onSetNote={handleSetNote}
           />
         )}
