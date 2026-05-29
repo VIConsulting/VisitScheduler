@@ -6,11 +6,18 @@ export function slotKey(date, period) {
   return `${date}:${period}`;
 }
 
+function localDateStr(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
 export function daysInMonth(year, month) {
   const days = [];
   const d = new Date(year, month, 1);
   while (d.getMonth() === month) {
-    days.push(d.toISOString().slice(0, 10));
+    days.push(localDateStr(d));
     d.setDate(d.getDate() + 1);
   }
   return days;

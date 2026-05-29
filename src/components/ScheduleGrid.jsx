@@ -21,7 +21,8 @@ function SlotCell({ slot, period, canEdit, onClick }) {
 
 export default function ScheduleGrid({ year, month, scheduleData, canEdit, onToggleVisitor, onSetNote }) {
   const [modal, setModal] = useState(null);
-  const today = new Date().toISOString().slice(0, 10);
+  const _t = new Date();
+  const today = `${_t.getFullYear()}-${String(_t.getMonth()+1).padStart(2,'0')}-${String(_t.getDate()).padStart(2,'0')}`;
   const weeks = weeksInMonth(year, month);
 
   return (
